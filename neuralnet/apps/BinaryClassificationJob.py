@@ -1,6 +1,6 @@
 
 
-__all__ = ['BinaryClassificationJob', 'lock_as_completed_job', 'lock_as_failed_job']
+__all__ = ['BinaryClassificationJob']
 
 from Gaugi import Logger, StatusCode, declareProperty
 from Gaugi.macros import *
@@ -13,15 +13,7 @@ from sklearn.utils.class_weight import compute_class_weight
 from datetime import datetime
 from copy import deepcopy, copy
 import numpy as np
-
-def lock_as_completed_job(output):
-  with open(output+'/.complete','w') as f:
-    f.write('complete')
-
-def lock_as_failed_job(output):
-  with open(output+'/.failed','w') as f:
-    f.write('failed')
-
+import pandas as pd
 
 
 
@@ -230,8 +222,7 @@ class BinaryClassificationJob( Logger ):
           else:
             sample_weight = np.ones_like(y_train)
 
-
-          # Training
+    
           history = model_for_this_init.fit(x_train, y_train,
                               epochs          = self.epochs,
                               batch_size      = batch_size,
@@ -239,7 +230,8 @@ class BinaryClassificationJob( Logger ):
                               validation_data = (x_val,y_val),
                               # copy protection to avoid the interruption or interference
                               # in the next training (e.g: early stop)
-                              sample_weight   = sample_weight,
+                              # bugfix: https://stackoverflow.com/questions/63158424/why-does-keras-model-fit-with-sample-weight-have-long-initialization-time
+                              sample_weight   = pd.Series(sample_weight),
                               callbacks       = callbacks,
                               shuffle         = True).history
 
@@ -250,7 +242,7 @@ class BinaryClassificationJob( Logger ):
           self.__context.setHandler( "sort"    , sort                    )
           self.__context.setHandler( "init"    , init                    )
           self.__context.setHandler( "imodel"  , self.__id_models[imodel])
-          self.__context.setHandler("time" , end-start)
+          self.__context.setHandler( "time"    , end-start)
 
 
           if not self.save_history:

@@ -171,7 +171,7 @@ class Reference( Logger ):
 
     # Set all references from the reference file and target list
     if refFile and targets:
-      from saphyra.core import ReferenceReader
+      from neuralnet.core import ReferenceReader
       refObj = ReferenceReader().load(refFile)
       for ref in targets:
         pd = (refObj.getSgnPassed(ref[0]) , refObj.getSgnTotal(ref[0]))
@@ -340,7 +340,7 @@ class LinearFit( Logger ):
     self.false_alarm_limit = false_alarm_limit
 
     # Set all references from the reference file and target list
-    from saphyra.core import ReferenceReader
+    from neuralnet.core import ReferenceReader
     refObj = ReferenceReader().load(refFile)
     for ref in targets:
       pd = (refObj.getSgnPassed(ref[0]) , refObj.getSgnTotal(ref[0]))
