@@ -47,7 +47,7 @@ class create_configuration_jobs( Logger ):
     declareProperty( self, kw, 'sortBounds'   ,             5               )
     declareProperty( self, kw, 'nInits'       ,             10              )
     declareProperty( self, kw, 'nSortsPerJob' ,             1               )
-    declareProperty( self, kw, 'nInitsPerJob' ,             10              ) 
+    declareProperty( self, kw, 'nInitsPerJob' ,             1               ) 
     declareProperty( self, kw, 'nModelsPerJob',             1               ) 
     declareProperty( self, kw, 'models'       ,   [default_model]           )
     declareProperty( self, kw, 'model_tags'   ,   ['mlp_100_5_1']           )
@@ -87,11 +87,14 @@ class create_configuration_jobs( Logger ):
       job.setInits(init_list)
       job.setModels([self.models[idx] for idx in model_idx_list],  model_idx_list )
       # save config file
-      model_str = 'ml%i.mu%i' %(model_idx_list[0], model_idx_list[-1])
-      sort_str  = 'sl%i.su%i' %(sort_list[0], sort_list[-1])
-      init_str  = 'il%i.iu%i' %(init_list[0], init_list[-1])
-      job.save( self.outputFolder+'/' + ('job_config.ID_%s.%s_%s_%s') %
-              ( str(nJobs).zfill(4), model_str, sort_str, init_str) )
+      #model_str = 'ml%i.mu%i' %(model_idx_list[0], model_idx_list[-1])
+      #sort_str  = 'sl%i.su%i' %(sort_list[0], sort_list[-1])
+      #init_str  = 'il%i.iu%i' %(init_list[0], init_list[-1])
+
+      job_name = 'job.%s.model_%d.sort_%d.init_%d' % (str(nJobs).zfill(4), 
+                  model_idx_list[0],sort_list[0],init_list[0])
+
+      job.save( self.outputFolder+'/' + job_name)
       nJobs+=1
 
     MSG_INFO( self, "A total of %d jobs...", nJobs)

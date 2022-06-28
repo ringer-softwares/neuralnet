@@ -99,7 +99,7 @@ class sp(Callback, Logger):
 
 
 
-class wandb(Callback, Logger):
+class wandb_app(Callback, Logger):
 
   def __init__(self, username, task):
     super(Callback, self).__init__()
@@ -114,4 +114,5 @@ class wandb(Callback, Logger):
                              id=name)
 
   def on_epoch_end(self, epoch, logs={}):
-    self.__core.log(logs, step=epoch)
+    print(logs)
+    self.__core.log(logs)

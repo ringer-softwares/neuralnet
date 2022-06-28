@@ -33,8 +33,9 @@ class Summary( Logger ):
   #
   # Constructor
   #
-  def __init__( self ):
+  def __init__( self , detailed_info=True):
     Logger.__init__(self)
+    self.detailed_info=detailed_info
 
   #
   # Use this method to decorate the keras history in the end of the training
@@ -64,10 +65,7 @@ class Summary( Logger ):
     y_pred_operation = np.concatenate( (y_pred, y_pred_val), axis=0)
     y_operation = np.concatenate((y_train,y_val), axis=0)
 
-    d['rocs'] = {}
-    d['hists'] = {}
-    m_step = 1e-2
-    m_bins = np.arange(min(y_train), max(y_train)+m_step, step=m_step)
+    
     # No threshold is needed
     d['auc'] = roc_auc_score(y_train, y_pred)
     d['auc_val'] = roc_auc_score(y_val, y_pred_val)
@@ -79,8 +77,14 @@ class Summary( Logger ):
     d['mse_val'] = mean_squared_error(y_val, y_pred_val)
     d['mse_op'] = mean_squared_error(y_operation, y_pred_operation)
 
+    if self.detailed_info:
+      d['rocs'] = {}
+      d['hists'] = {}
 
-
+    m_step = 1e-2
+    m_bins = np.arange(min(y_train), max(y_train)+m_step, step=m_step)
+    
+    
     # Here, the threshold is variable and the best values will
     # be setted by the max sp value found in hte roc curve
     # Training
@@ -89,12 +93,12 @@ class Summary( Logger ):
     knee = np.argmax(sp)
     threshold = thresholds[knee]
 
+    if self.detailed_info:
+      d['rocs']['roc'] = (pd, fa)
+      #d['rocs']['predictions'] = (y_pred, y_train)
+      d['hists']['trn_sgn'] = np.histogram(y_pred[y_train == 1], bins=m_bins)
+      d['hists']['trn_bkg'] = np.histogram(y_pred[y_train != 1], bins=m_bins)
 
-    d['rocs']['roc'] = (pd, fa)
-    #d['rocs']['predictions'] = (y_pred, y_train)
-
-    d['hists']['trn_sgn'] = np.histogram(y_pred[y_train == 1], bins=m_bins)
-    d['hists']['trn_bkg'] = np.histogram(y_pred[y_train != 1], bins=m_bins)
 
     MSG_INFO( self, "Train samples     : Prob. det (%1.4f), False Alarm (%1.4f), SP (%1.4f), AUC (%1.4f) and MSE (%1.4f)",
         pd[knee], fa[knee], sp[knee], d['auc'], d['mse'])
@@ -111,11 +115,11 @@ class Summary( Logger ):
     knee = np.argmax(sp)
     threshold = thresholds[knee]
 
-    d['rocs']['roc_val'] = (pd, fa)
-    #d['rocs']['predictions_val'] = (y_pred_val, y_val)
-
-    d['hists']['val_sgn'] = np.histogram(y_pred_val[y_val == 1], bins=m_bins)
-    d['hists']['val_bkg'] = np.histogram(y_pred_val[y_val != 1], bins=m_bins)
+    if self.detailed_info:
+      d['rocs']['roc_val'] = (pd, fa)
+      #d['rocs']['predictions_val'] = (y_pred_val, y_val)
+      d['hists']['val_sgn'] = np.histogram(y_pred_val[y_val == 1], bins=m_bins)
+      d['hists']['val_bkg'] = np.histogram(y_pred_val[y_val != 1], bins=m_bins)
 
     MSG_INFO( self, "Validation Samples: Prob. det (%1.4f), False Alarm (%1.4f), SP (%1.4f), AUC (%1.4f) and MSE (%1.4f)",
         pd[knee], fa[knee], sp[knee], d['auc_val'], d['mse_val'])
@@ -132,12 +136,12 @@ class Summary( Logger ):
     knee = np.argmax(sp)
     threshold = thresholds[knee]
 
-    d['rocs']['roc_op'] = (pd, fa)
-    # We dont need to attach y_op and y_pred_op since the user can concatenate train and val to get this. Just to save storage.
-    #d['rocs']['predictions_op'] = (y_pred_operation, y_operations)
-    
-    d['hists']['op_sgn'] = np.histogram(y_pred_operation[y_operation == 1], bins=m_bins)
-    d['hists']['op_bkg'] = np.histogram(y_pred_operation[y_operation != 1], bins=m_bins)
+    if self.detailed_info:
+      d['rocs']['roc_op'] = (pd, fa)
+      # We dont need to attach y_op and y_pred_op since the user can concatenate train and val to get this. Just to save storage.
+      #d['rocs']['predictions_op'] = (y_pred_operation, y_operations)
+      d['hists']['op_sgn'] = np.histogram(y_pred_operation[y_operation == 1], bins=m_bins)
+      d['hists']['op_bkg'] = np.histogram(y_pred_operation[y_operation != 1], bins=m_bins)
 
     MSG_INFO( self, "Operation Samples : Prob. det (%1.4f), False Alarm (%1.4f), SP (%1.4f), AUC (%1.4f) and MSE (%1.4f)",
         pd[knee], fa[knee], sp[knee], d['auc_val'], d['mse_val'])
